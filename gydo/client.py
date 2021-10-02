@@ -37,7 +37,3 @@ class Client:
         }
         
         return self.MessageEmbedJSON
-
-bot = Client("ODM4MDU4ODUwNDM5Mzk3NDI2.YI1lIA.BHjcIE7FHhTXKPrxfH054Lf-QTs")
-
-bot.sendMessage('GYDO.PY LMAO', '846427062235693127')
