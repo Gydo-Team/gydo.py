@@ -16,11 +16,20 @@ class Client:
     
         self.ws = WebsocketManager(self)
         
-        # asyncio.get_event_loop().run_until_complete(self.ws.connect())
+        loop = asyncio.get_event_loop()
+
+        connection = loop.run_until_complete(self.ws.connect())
+        
+        tasks = [
+            asyncio.ensure_future(self.ws.heartbeat(connection)),
+            asyncio.ensure_future(self.ws.receiveMessage(connection)),
+        ]
+    
+        loop.run_until_complete(asyncio.wait(tasks))
         
         self.data = json.loads(r.text)
         
-        self.user = ClientUser(self.data, self, self.ws)
+        self.user = ClientUser(self)
     
     def sendMessage(self, message, channelId, *embed):
         self.messageJSON = {
@@ -37,7 +46,6 @@ class Client:
         }
         
         return self.MessageEmbedJSON
-
-bot = Client("ODM4MDU4ODUwNDM5Mzk3NDI2.YI1lIA.BHjcIE7FHhTXKPrxfH054Lf-QTs")
-
-bot.sendMessage('GYDO.PY LMAO', '846427062235693127')
+    
+    def setActivity(self, name, type): 
+        self.ws.presence(name, type)

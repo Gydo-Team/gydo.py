@@ -1,68 +1,66 @@
-from restapi import RESTManager
-import requests
-import platform
-import time, json, random
 import websockets
 import asyncio
-import aiohttp
-from websockets import connect 
-
-connected = set()
+import json
+import platform
 
 class WebsocketManager:
     def __init__(self, data):
-        self.os = platform.system()
         self.token = data.token
-        self.wsGateway = 'https://discord.com/api/gateway/bot'
-        self.users = data.endpoint + '/users'
-        self.channels = data.endpoint + '/channels'
-    
+        
+        self.activity = None
+        self.activityType = None
+        pass
+
     async def connect(self):
-        # self.session = aiohttp.ClientSession()
-         
-        self.headers = {}
-        
-        self.timeToConnect = 4500 * random.random()
-        
-        self.defaultWSOpt = {
-            "op": 1,
-            "d": 2
-        }
-        
-        self.headers['Authorization'] = f'Bot {self.token}'
-        self.headers['Content-Type'] = 'application/json'
-        
-        r = requests.get(self.wsGateway, headers=self.headers)
-        
-        self.connected = json.dumps(r.text)
-        
-        self.opGateway = {}
-        
-        self.opGateway["op"] = 1
-        
-        self.user_prop = {}
-        
-        print(self.connected)
-        
-        async with websockets.connect(f'wss://gateway.discord.gg/?v=9&encoding=json') as ws:
-            while True:
-                await ws.send(json.dumps(self.defaultWSOpt))
-                time.sleep(4.1250)
-                
-            self.user_prop["op"] = 2
-            self.user_prop["d"]['token'] = self.token
-            self.user_prop['d']['properties']['$os'] = self.os 
-            self.user_prop['d']['properties']['$browser'] = 'my_library'
-            self.user_prop['d']['properties']['$device'] = 'my_library'
+        self.connection = await websockets.connect('wss://gateway.discord.gg')
+        if self.connection.open:
+            print('Connection stablished. Client correctly connected')
             
-            await ws.send(json.dumps(self.user_prop))
-            
-            await ws.recv()
-
-        await asyncio.Future()
-
-    def status(self, status):
-        # self.opGateway["d"]["status"] = status
+            self.identify = {
+                'op': 2,
+                'd': {
+                    'token': self.token,
+                    'intents': 513,
+                    'properties': {
+                        '$os': str(platform.system()).lower(),
+                        '$browser': 'gydo.py',
+                        '$device': 'gydo.py'
+                    },
+                    'presence': {
+                        'activities': [{
+                            'name': self.activity,
+                            'type': self.activityType
+                        }],
+                    },
+                }
+            }
         
-        print('not yet done wtih status')
-        return
+            await self.sendMessage(json.dumps(self.identify))
+            return self.connection
+
+
+    async def sendMessage(self, message):
+        await self.connection.send(message)
+
+    async def receiveMessage(self, connection):
+        while True:
+            try:
+                message = await connection.recv()
+                print('Discord Websocket:\n ' + str(message))
+
+            except websockets.exceptions.ConnectionClosed:
+                print('Connection with Discord Websocket closed')
+                break
+            
+    async def heartbeat(self, connection):
+        while True:
+            try:
+                await connection.send(json.dumps({"op":1,'d':2}))
+                await asyncio.sleep(4.1250)
+            except websockets.exceptions.ConnectionClosed:
+                print('Connection with server closed')
+                break
+            
+    async def presence(self, data, type):
+        self.activity = data
+        self.activityType = type

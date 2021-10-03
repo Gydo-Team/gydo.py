@@ -9,7 +9,6 @@ setup(
     version=VERSION,
     author="loldonut (John Heinrich)",
     description=DESCRIPTION,
-    long_description=long_description,
     packages=find_packages(),
     install_requires=['requests', 'schedule', 'websockets', 'aiohttp'],
     keywords=['python', 'discord', 'gydo.py', 'discord api']
