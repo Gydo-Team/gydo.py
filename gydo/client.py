@@ -1,7 +1,7 @@
-from restapi import RESTManager
-from WebsocketManager import WebsocketManager
+from gydo.restapi import RESTManager
+from gydo.WebsocketManager import WebsocketManager
 import json
-from ClientUser import ClientUser
+from gydo.ClientUser import ClientUser
 import asyncio
 
 APIEndpoint = 'https://discord.com/api/v8'

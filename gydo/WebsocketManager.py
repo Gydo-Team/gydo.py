@@ -58,7 +58,7 @@ class WebsocketManager:
                 await connection.send(json.dumps({"op":1,'d':2}))
                 await asyncio.sleep(4.1250)
             except websockets.exceptions.ConnectionClosed:
-                print('Connection with server closed')
+                print('Connection with Discord Websocket closed')
                 break
             
     async def presence(self, data, type):

@@ -1,2 +1,5 @@
 # Auto Generated
 gydo/__pycache__
+gydo.py.egg-info/
+dist/
+.git/
