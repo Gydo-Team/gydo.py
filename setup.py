@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 DESCRIPTION = 'A Package for interacting with Discord\'s API'
 
 # Setting up
@@ -9,7 +9,7 @@ setup(
     version=VERSION,
     author="loldonut (John Heinrich)",
     description=DESCRIPTION,
-    long_description=long_description,
+    license="Apache-2.0",
     packages=find_packages(),
     install_requires=['requests', 'schedule', 'websockets', 'aiohttp'],
     keywords=['python', 'discord', 'gydo.py', 'discord api']

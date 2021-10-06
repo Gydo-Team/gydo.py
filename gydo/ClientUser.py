@@ -1,14 +1,9 @@
 class ClientUser:
-    def __init__(self, rawUser, data, ws):
-        self.id = rawUser["id"]
+    def __init__(self, data):
+        self.id = None 
         
-        self.discriminator = rawUser["discriminator"]
+        self.discriminator = None 
         
-        self.username = rawUser["username"]
-        
-        self.tag = self.username + '#' + self.discriminator
-        
-    def get_channel(self, channel_id):
-        r = data.manage.RESTGet(ws.channels + channel_id, headers=ws.headers)
-        
-        return r
+        self.username = None
+    
+        self.tag = None

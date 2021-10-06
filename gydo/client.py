@@ -1,7 +1,7 @@
-from restapi import RESTManager
-from WebsocketManager import WebsocketManager
+from gydo.restapi import RESTManager
+from gydo.WebsocketManager import WebsocketManager
 import json
-from ClientUser import ClientUser
+from gydo.ClientUser import ClientUser
 import asyncio
 
 APIEndpoint = 'https://discord.com/api/v8'
@@ -16,11 +16,20 @@ class Client:
     
         self.ws = WebsocketManager(self)
         
-        # asyncio.get_event_loop().run_until_complete(self.ws.connect())
+        loop = asyncio.get_event_loop()
+
+        connection = loop.run_until_complete(self.ws.connect())
+        
+        tasks = [
+            asyncio.ensure_future(self.ws.heartbeat(connection)),
+            asyncio.ensure_future(self.ws.receiveMessage(connection)),
+        ]
+    
+        loop.run_until_complete(asyncio.wait(tasks))
         
         self.data = json.loads(r.text)
         
-        self.user = ClientUser(self.data, self, self.ws)
+        self.user = ClientUser(self)
     
     def sendMessage(self, message, channelId, *embed):
         self.messageJSON = {
@@ -37,3 +46,6 @@ class Client:
         }
         
         return self.MessageEmbedJSON
+    
+    def setActivity(self, name, type): 
+        self.ws.presence(name, type)
