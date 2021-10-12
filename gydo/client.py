@@ -1,51 +1,65 @@
-from gydo.restapi import RESTManager
-from gydo.WebsocketManager import WebsocketManager
+from restapi import RESTManager
+from WebsocketManager import WebsocketManager
 import json
-from gydo.ClientUser import ClientUser
+from ClientUser import ClientUser
 import asyncio
+import aiohttp
 
 APIEndpoint = 'https://discord.com/api/v8'
 
+
 class Client:
+    """
+        Main Client for Discord Bots
+    """
     def __init__(self, token):
         self.token = token;
         self.endpoint = APIEndpoint
         self.manage = RESTManager(self.token, APIEndpoint)
         
-        r = self.manage.RESTGetCurrentUser(self.token, APIEndpoint)
-    
         self.ws = WebsocketManager(self)
-        
-        loop = asyncio.get_event_loop()
-
-        connection = loop.run_until_complete(self.ws.connect())
-        
-        tasks = [
-            asyncio.ensure_future(self.ws.heartbeat(connection)),
-            asyncio.ensure_future(self.ws.receiveMessage(connection)),
-        ]
-    
-        loop.run_until_complete(asyncio.wait(tasks))
-        
-        self.data = json.loads(r.text)
-        
         self.user = ClientUser(self)
+
+        self.usr_data = []
+        
+        asyncio.run(self.create_session())
     
-    def sendMessage(self, message, channelId, *embed):
+    """
+        Send a message through Discord's REST API
+    """
+    async def sendMessage(self, message, channelId, *embed):
         self.messageJSON = {
             'content': f'{message}',
             'embeds': []
         }
-        
+
         r = self.manage.RESTPostMessage(self.token, APIEndpoint, channelId, self.messageJSON)
         
-    def MessageEmbed(self, title, description):
+        return r
+
+    async def MessageEmbed(self, title, description):
         self.MessageEmbedJSON = {
             'title': title,
             'description': description
         }
-        
+
         return self.MessageEmbedJSON
-    
-    def setActivity(self, name, type): 
-        self.ws.presence(name, type)
+        
+    async def create_session(self):
+        loop = asyncio.get_event_loop()
+        
+        self.session = aiohttp.ClientSession()
+
+        self.connection = await self.session.ws_connect('wss://gateway.discord.gg/?v=9&encoding=json')
+
+        tasks = [
+            asyncio.ensure_future(self.ws.heartbeat()),
+            asyncio.ensure_future(await self.ws.connect(self.connection))
+        ]
+
+        try:
+            loop.run_until_complete(asyncio.wait(tasks))
+            loop.run_forever()
+        except KeyboardInterrupt:
+            await self.ws.connection.close()
+            loop.stop()
