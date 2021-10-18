@@ -4,8 +4,11 @@ import json
 from ClientUser import ClientUser
 import asyncio
 import aiohttp
+import nest_asyncio
+nest_asyncio.apply()
+from pymitter import EventEmitter
 
-APIEndpoint = 'https://discord.com/api/v8'
+APIEndpoint = 'https://discord.com/api/v9'
 
 
 class Client:
@@ -13,14 +16,11 @@ class Client:
         Main Client for Discord Bots
     """
     def __init__(self, token):
-        self.token = token;
         self.endpoint = APIEndpoint
-        self.manage = RESTManager(self.token, APIEndpoint)
-        
+        self.token = token
         self.ws = WebsocketManager(self)
-        self.user = ClientUser(self)
-
-        self.usr_data = []
+        self.manage = RESTManager(self.token, APIEndpoint)
+        self.events = EventEmitter()
         
         asyncio.run(self.create_session())
     
@@ -45,21 +45,24 @@ class Client:
 
         return self.MessageEmbedJSON
         
+    """
+        Create a WebSocket Session
+    """
     async def create_session(self):
         loop = asyncio.get_event_loop()
         
         self.session = aiohttp.ClientSession()
 
         self.connection = await self.session.ws_connect('wss://gateway.discord.gg/?v=9&encoding=json')
-
+        
         tasks = [
             asyncio.ensure_future(self.ws.heartbeat()),
-            asyncio.ensure_future(await self.ws.connect(self.connection))
         ]
-
+        
+        self.user = ClientUser(await self.ws.connect(self.connection))
+        
         try:
             loop.run_until_complete(asyncio.wait(tasks))
             loop.run_forever()
         except KeyboardInterrupt:
             await self.ws.connection.close()
-            loop.stop()

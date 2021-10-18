@@ -3,11 +3,14 @@ import pymitter
 import json
 
 class ClientUser:
-    def __init__(self, client):
-        self.id = None 
+    def __init__(self, data):
+        x = json.dumps(data.json())
+        usr_data = json.loads(x)['d']
         
-        self.discriminator = None 
+        self.id = usr_data['user']['id']
         
-        self.username = None
-    
-        self.tag = None
+        self.discriminator = usr_data['user']['discriminator']
+        
+        self.username = usr_data['user']['username']
+
+        self.tag = f'{self.username}#{self.discriminator}'

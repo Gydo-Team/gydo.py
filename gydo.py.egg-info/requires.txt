@@ -2,3 +2,5 @@ requests
 schedule
 websockets
 aiohttp
+next_asyncio
+pymitter

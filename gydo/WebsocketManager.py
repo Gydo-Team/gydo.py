@@ -1,8 +1,10 @@
-import websockets
 import aiohttp
 import asyncio
 import json
 import platform
+import random
+
+APIEndpoint = 'https://discord.com/api/v9'
 
 class WebsocketManager:
     """
@@ -11,10 +13,7 @@ class WebsocketManager:
     def __init__(self, data):
         self.token = data.token
         self.client = data
-        
-        self.activity = None
-        self.activityType = None
-        self.usr = self.user_data
+        self.data = data
 
     async def connect(self, connection):
         self.connection = connection
@@ -42,25 +41,30 @@ class WebsocketManager:
         ack = await self.connection.receive()
         
         usr = await self.connection.receive()
+        
         dump = json.dumps(usr.json())
         res = json.loads(dump)
-        usr_data = res
-
-        self.user_data = usr_data
         
-        await asyncio.Future()
+        return usr
 
     async def sendMessage(self, message):
         await self.connection.send_str(message)
+        
+    async def rcv_messages(self):
+        while True:
+            try:
+                x = await self.connection.receive()
+                print(x)
+            except KeyboardInterrupt:
+                await self.connection.close()
 
     async def heartbeat(self):
         while True:
             try:
                 await self.connection.send_str(json.dumps({"op":1,'d':2}))
-                await asyncio.sleep(4.1250)
+                await asyncio.sleep(4.1250 * random.random())
             except KeyboardInterrupt:
                 await self.connection.close()
-                loop.stop()
     
     async def set_status(self, name):
         self.identifyBoilerplate['d']['presence'] = {}
