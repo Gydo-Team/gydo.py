@@ -4,19 +4,25 @@ class RESTManager:
     def __init__(self, rest, endpoint):
         self.token = rest;
         
-        self.headers = {
-            'Authorization': f'Bot {rest}',
-            'Content-Type': 'application/json'
-        }
+        self.headers = {}
+        self.headers['Authorization'] = f'Bot {rest}'
+        self.headers['Content-Type'] = 'application/json'
         
     def RESTGetCurrentUser(self, rest, endpoint):
         
         r = requests.get(f'{endpoint}/users/@me', headers=self.headers)
         
         return r
-        
-    def RESTPostMessage(self, rest, endpoint, channelId, json):
-        
+    """
+        Make a 'POST' Message Request on Discord's REST API
+    """
+    def RESTPostMessage(
+        self, 
+        rest, 
+        endpoint, 
+        channelId, 
+        json
+    ):
         self.MESSAGE_JSON = json
         
         r = requests.post(f'{endpoint}/channels/{channelId}/messages', headers=self.headers, json=self.MESSAGE_JSON)

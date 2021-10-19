@@ -3,14 +3,18 @@ import pymitter
 import json
 
 class ClientUser:
-    def __init__(self, data):
-        x = json.dumps(data.json())
-        usr_data = json.loads(x)['d']
+    """
+        Represents a Discord User
+    """
+    def __init__(self, data, connection):
+        user = data.ws.identify(connection)['user']
         
-        self.id = usr_data['user']['id']
-        
-        self.discriminator = usr_data['user']['discriminator']
-        
-        self.username = usr_data['user']['username']
-
+        self.username = user['username']
+        self.discriminator = user['discriminator']
         self.tag = f'{self.username}#{self.discriminator}'
+        
+        self.is_verified = user['verified']
+        self.mfa_enabled = user['mfa_enabled']
+        
+        self.id = user['id']
+        self.mentionSelf = f'<@{self.id}>'
